@@ -152,3 +152,12 @@ function consultarPorNome(nome) {
 
 // Exemplo de uso
 consultarPorNome('Banana');
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js')
+    .then((registration) => {
+      console.log('ServiceWorker registered with scope:', registration.scope);
+    })
+    .catch((error) => {
+      console.error('ServiceWorker registration failed:', error);
+    });
+}
