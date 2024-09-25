@@ -487,7 +487,7 @@
                 const vendorSelect = document.getElementById('vendor-select');
                 const sendMessageBtn = document.getElementById('send-message-btn');
                 const searchInput = document.getElementById('search-input');
-                
+        
                 const headerIndex = {
                     nome: headers.indexOf('nome'),
                     codigo: headers.indexOf('codigo'),
@@ -607,12 +607,14 @@
         
                         catalogContainer.appendChild(card);
         
-                        // Adiciona evento de clique para ampliação da imagem
                         card.querySelector('.product-image').addEventListener('click', () => {
                             enlargeImage(img);
                         });
         
-                        // Adiciona evento de clique para adicionar ao carrinho
+                        card.querySelector('.show-description-btn').addEventListener('click', () => {
+                            showDescription(descricao, nome);
+                        });
+        
                         card.querySelector('.add-to-cart-btn').addEventListener('click', addToCart);
                     });
                 }
@@ -642,6 +644,8 @@
                         document.body.removeChild(modal);
                     });
                 }
+        
+                const cart = [];
         
                 function addToCart(event) {
                     const product = JSON.parse(event.target.getAttribute('data-product'));
@@ -682,8 +686,6 @@
                     cart = cart.filter(item => item.product[headerIndex.codigo] !== codeToRemove);
                     updateCartDisplay();
                 }
-        
-                const cart = [];
         
                 const cartIcon = document.getElementById('cart-icon');
                 const cartContainer = document.getElementById('cart-container');
@@ -747,21 +749,19 @@
             window.print();
         });
         
-        function showDescription(event) {
-            const button = event.target;
-            const descricao = button.getAttribute('data-description');
-            const nome = button.closest('.card').querySelector('h3').textContent;
-        
+        function showDescription(descricao, nome) {
             document.getElementById('description-title').textContent = nome;
             document.getElementById('description-text').textContent = descricao;
-        
             document.getElementById('description-modal').style.display = 'flex';
         }
         
         function closeDescription() {
             document.getElementById('description-modal').style.display = 'none';
         }
+        
+        document.getElementById('close-description').addEventListener('click', closeDescription);
         </script>
+        
         
 </body>
 </html>
