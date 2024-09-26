@@ -373,7 +373,10 @@
             <button class="send-message-btn" id="send-message-btn">Enviar Mensagem</button>
         </div>
     </div>
-
+    <div id="image-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index: 1000;">
+        <img id="modal-image" style="max-width:90%; max-height:90%;">
+    </div>
+    
     <script>
         const sheetId = '1mJbjNBsfJQmhThpFvaYchuvNslHtRBPWiV7fgzONJl8';
         const apiKey = 'AIzaSyBUBfQAzykuAOrdQzJHR_RTVzK0R5HhFrM';
@@ -491,6 +494,16 @@
                         `;
         
                         catalogContainer.appendChild(card);
+                        card.querySelector('img').addEventListener('click', () => {
+                            document.getElementById('modal-image').src = img;
+                            document.getElementById('image-modal').style.display = 'flex';
+                        });
+
+                        // Evento para fechar o modal ao clicar
+                        document.getElementById('image-modal').addEventListener('click', () => {
+                            document.getElementById('image-modal').style.display = 'none';
+                        });
+
                     });
         
                     document.querySelectorAll('.add-to-cart-btn').forEach(button => {
