@@ -320,7 +320,17 @@
         .print-button:hover {
          background-color: #0056b3;
         }
-        
+        .cart-count {
+            background-color: red; /* Cor de fundo vermelha */
+            color: white; /* Cor do texto em branco */
+            border-radius: 50%; /* Forma redonda */
+            padding: 5px 10px; /* Espaçamento interno */
+            position: absolute; /* Para posicionar sobre o ícone */
+            top: -5px; /* Ajuste a posição conforme necessário */
+            right: -10px; /* Ajuste a posição conforme necessário */
+            font-size: 0.8em; /* Tamanho da fonte */
+        }
+
 
     </style>
 </head>
@@ -347,7 +357,8 @@
         <!-- Os cards de produtos serão gerados dinamicamente aqui -->
     </div>
 
-    <div class="cart-icon" id="cart-icon">🛒</div>
+    <div class="cart-icon" id="cart-icon">🛒 <span id="cart-count" class="cart-count">0</span></div>
+
 
     <div class="cart-container" id="cart-container">
         <div class="close-cart" id="close-cart">×</div>
@@ -538,6 +549,7 @@
                     }
                     
                     updateCartDisplay();
+                    updateCartCount(); // Atualiza a contagem aqui
                     Toastify({
                         text: `Produto adicionado: ${product[headerIndex.nome]} (Quantidade: ${quantity})`,
                         duration: 3000, // Tempo em milissegundos
@@ -546,6 +558,12 @@
                         position: 'right', // "left", "center" ou "right"
                         backgroundColor: "#28a745",
                     }).showToast();
+
+                    function updateCartCount() {
+                        const cartCount = document.getElementById('cart-count');
+                        cartCount.textContent = cart.length; // Atualiza a contagem com o número de produtos únicos
+                    }
+
 
                 }
 
