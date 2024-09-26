@@ -337,7 +337,7 @@
         </select>
     </div>
     <div class="search-container">
-        <input type="text" id="search-input" placeholder="Pesquisar produto...">
+        <input type="text" id="search-input" placeholder="Pesquisar produto ou Código">
     </div>
     
     <div class="catalog-container" id="catalog-container">
@@ -500,10 +500,11 @@
                     const searchInput = document.getElementById('search-input');
 
                     searchInput.addEventListener('input', () => {
-                        const searchTerm = searchInput.value.toLowerCase();
-                        const filteredProducts = products.filter(product => {
+                            const searchTerm = searchInput.value.toLowerCase();
+                            const filteredProducts = products.filter(product => {
                             const productName = product[headerIndex.nome].toLowerCase();
-                            return productName.includes(searchTerm);
+                            const productCode = product[headerIndex.codigo].toLowerCase();
+                            return productName.includes(searchTerm) || productCode.includes(searchTerm);
                         });
                         displayProducts(filteredProducts);
                     });
