@@ -381,9 +381,9 @@
         const sheetId = '1mJbjNBsfJQmhThpFvaYchuvNslHtRBPWiV7fgzONJl8';
         const apiKey = 'AIzaSyBUBfQAzykuAOrdQzJHR_RTVzK0R5HhFrM';
         const sheetName = 'Pagina1';
-    
+        
         const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}?key=${apiKey}`;
-    
+        
         fetch(url)
             .then(response => response.json())
             .then(data => {
@@ -394,7 +394,7 @@
                 const subcategorySelect = document.getElementById('subcategory-select');
                 const vendorSelect = document.getElementById('vendor-select');
                 const sendMessageBtn = document.getElementById('send-message-btn');
-    
+                
                 const headerIndex = {
                     nome: headers.indexOf('nome'),
                     codigo: headers.indexOf('codigo'),
@@ -402,18 +402,19 @@
                     categoria: headers.indexOf('categoria'),
                     subcategoria: headers.indexOf('subcategoria')
                 };
-    
+        
                 if (Object.values(headerIndex).includes(-1)) {
                     console.error('Uma ou mais colunas necessárias não foram encontradas na planilha.');
                     return;
                 }
-    
+
                 // Array de vendedores
                 const vendors = [
                     { name: 'GUSTAVO', whatsapp: '+55038998853882' },
                     { name: 'GABRIEL', whatsapp: '+55038997299051' },
+                    // Adicione mais vendedores conforme necessário
                 ];
-    
+
                 // Preencher o seletor de vendedores
                 vendors.forEach(vendor => {
                     const option = document.createElement('option');
@@ -421,14 +422,14 @@
                     option.textContent = vendor.name;
                     vendorSelect.appendChild(option);
                 });
-    
+        
                 const categories = new Set();
                 const subcategories = new Map();
-    
+        
                 products.forEach(product => {
                     const category = product[headerIndex.categoria];
                     const subcategory = product[headerIndex.subcategoria];
-    
+        
                     categories.add(category);
                     if (category && subcategory) {
                         if (!subcategories.has(category)) {
@@ -437,23 +438,23 @@
                         subcategories.get(category).add(subcategory);
                     }
                 });
-    
+        
                 categories.forEach(category => {
                     const option = document.createElement('option');
                     option.value = category;
                     option.textContent = category;
                     categorySelect.appendChild(option);
                 });
-    
+        
                 const allOption = document.createElement('option');
                 allOption.value = '';
-                allOption.textContent = 'Escolha uma subcategoria';
+                allOption.textContent = 'Todas as subcategorias';
                 subcategorySelect.appendChild(allOption);
-    
+        
                 function updateSubcategories() {
                     const selectedCategory = categorySelect.value;
                     subcategorySelect.innerHTML = '<option value="">Escolha uma subcategoria</option>';
-    
+        
                     if (selectedCategory) {
                         const subcategoriesForCategory = subcategories.get(selectedCategory);
                         if (subcategoriesForCategory) {
@@ -469,21 +470,17 @@
                         subcategorySelect.style.display = 'none';
                     }
                 }
-    
-                // Variáveis para controle de carregamento
-                let currentIndex = 0;
-                const itemsPerPage = 100;
-    
+        
                 function displayProducts(productsToDisplay) {
-                    const productsToShow = productsToDisplay.slice(currentIndex, currentIndex + itemsPerPage);
-                    productsToShow.forEach(product => {
+                    catalogContainer.innerHTML = '';
+                    productsToDisplay.forEach(product => {
                         const nome = product[headerIndex.nome];
                         const codigo = product[headerIndex.codigo];
                         const img = product[headerIndex.img];
-    
+        
                         const card = document.createElement('div');
                         card.className = 'card';
-    
+        
                         card.innerHTML = `
                             <img src="${img}" alt="${nome}">
                             <div class="card-content">
@@ -495,51 +492,63 @@
                                 </div>
                             </div>
                         `;
-    
+        
                         catalogContainer.appendChild(card);
+                        card.querySelector('img').addEventListener('click', () => {
+                            document.getElementById('modal-image').src = img;
+                            document.getElementById('image-modal').style.display = 'flex';
+                        });
+
+                        // Evento para fechar o modal ao clicar
+                        document.getElementById('image-modal').addEventListener('click', () => {
+                            document.getElementById('image-modal').style.display = 'none';
+                        });
+
                     });
-    
-                    currentIndex += itemsPerPage;
+        
+                    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+                        button.addEventListener('click', addToCart);
+                    });
                 }
-    
-                // Evento de rolagem
-                window.addEventListener('scroll', () => {
-                    if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-                        if (currentIndex < products.length) {
-                            displayProducts(products);
-                        }
-                    }
-                });
-    
-                // Carregar os primeiros produtos
-                displayProducts(products);
-    
-                // Filtragem de produtos
+        
                 function filterProducts() {
-                    const selectedCategory = categorySelect.value;
-                    const selectedSubcategory = subcategorySelect.value;
-    
+                    const selectedCategory = document.getElementById('category-select').value;
+                    const selectedSubcategory = document.getElementById('subcategory-select').value;
+        
                     const filteredProducts = products.filter(product => {
                         const productCategory = product[headerIndex.categoria];
                         const productSubcategory = product[headerIndex.subcategoria];
-                        return (productCategory === selectedCategory) && 
+                        return (selectedCategory === '' || productCategory === selectedCategory) &&
                                (selectedSubcategory === '' || productSubcategory === selectedSubcategory);
                     });
-    
-                    currentIndex = 0; // Resetar o índice
+        
                     displayProducts(filteredProducts);
                 }
-    
+                    const searchInput = document.getElementById('search-input');
+
+                    searchInput.addEventListener('input', () => {
+                            const searchTerm = searchInput.value.toLowerCase();
+                            const filteredProducts = products.filter(product => {
+                            const productName = product[headerIndex.nome].toLowerCase();
+                            const productCode = product[headerIndex.codigo].toLowerCase();
+                            return productName.includes(searchTerm) || productCode.includes(searchTerm);
+                        });
+                        displayProducts(filteredProducts);
+                    });
+
+        
                 categorySelect.addEventListener('change', () => {
                     updateSubcategories();
                     filterProducts();
                 });
-    
+        
                 subcategorySelect.addEventListener('change', filterProducts);
-    
-                // Carrinho de compras
+        
+                displayProducts(products);
+
+                // Cart functionality
                 let cart = [];
-    
+
                 function addToCart(event) {
                     const product = JSON.parse(event.target.getAttribute('data-product'));
                     const quantity = parseInt(event.target.previousElementSibling.value);
@@ -553,22 +562,25 @@
                     }
                     
                     updateCartDisplay();
-                    updateCartCount();
+                    updateCartCount(); // Atualiza a contagem aqui
                     Toastify({
                         text: `Produto adicionado: ${product[headerIndex.nome]} (Quantidade: ${quantity})`,
-                        duration: 3000,
+                        duration: 3000, // Tempo em milissegundos
                         close: true,
-                        gravity: "top",
-                        position: 'right',
+                        gravity: "top", // "top" ou "bottom"
+                        position: 'right', // "left", "center" ou "right"
                         backgroundColor: "#28a745",
                     }).showToast();
+
+                    function updateCartCount() {
+                        const cartCount = document.getElementById('cart-count');
+                        cartCount.textContent = cart.length; // Atualiza a contagem com o número de produtos únicos
+                    }
+
+
                 }
-    
-                function updateCartCount() {
-                    const cartCount = document.getElementById('cart-count');
-                    cartCount.textContent = cart.length;
-                }
-    
+
+
                 function updateCartDisplay() {
                     const cartItems = document.getElementById('cart-items');
                     cartItems.innerHTML = '';
@@ -582,68 +594,65 @@
                         `;
                         cartItems.appendChild(cartItem);
                     });
-    
+
                     document.querySelectorAll('.remove-item').forEach(button => {
                         button.addEventListener('click', removeFromCart);
                     });
                 }
-    
+
                 function removeFromCart(event) {
                     const codeToRemove = event.target.getAttribute('data-code');
                     cart = cart.filter(item => item.product[headerIndex.codigo] !== codeToRemove);
                     updateCartDisplay();
                 }
-    
+
                 const cartIcon = document.getElementById('cart-icon');
                 const cartContainer = document.getElementById('cart-container');
                 const closeCart = document.getElementById('close-cart');
-    
+
                 cartIcon.addEventListener('click', () => {
                     cartContainer.classList.add('open');
                 });
-    
+
                 closeCart.addEventListener('click', () => {
                     cartContainer.classList.remove('open');
                 });
-    
+
                 const showAllButton = document.getElementById('show-all');
                 showAllButton.addEventListener('click', () => {
                     categorySelect.value = '';
                     subcategorySelect.value = '';
                     subcategorySelect.style.display = 'none';
-                    currentIndex = 0; // Resetar índice
                     displayProducts(products);
                 });
-    
+
                 function sendMessage() {
-                    const selectedVendor = vendorSelect.value;
-                    
-                    if (!selectedVendor) {
-                        alert('Por favor, escolha um vendedor.');
-                        return;
-                    }
+    const selectedVendor = vendorSelect.value;
     
-                    if (cart.length === 0) {
-                        alert('O carrinho está vazio.');
-                        return;
-                    }
-    
-                    let message = 'Olá, gostaria de fazer um pedido:\n\n';
-                    cart.forEach(item => {
-                        message += `•(Código: ${item.product[headerIndex.codigo]}) - Quantidade: ${item.quantity}\n`;
-                    });
-    
-                    const encodedMessage = encodeURIComponent(message);
-                    const whatsappUrl = `https://api.whatsapp.com/send?phone=${selectedVendor}&text=${encodedMessage}`;
-    
-                    window.open(whatsappUrl, '_blank');
-                }
-    
+    if (!selectedVendor) {
+        alert('Por favor, escolha um vendedor.');
+        return;
+    }
+
+    if (cart.length === 0) {
+        alert('O carrinho está vazio.');
+        return;
+    }
+
+    let message = 'Olá, gostaria de fazer um pedido:\n\n';
+    cart.forEach(item => {
+        message += `•(Código: ${item.product[headerIndex.codigo]}) - Quantidade: ${item.quantity}\n`;
+    });
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${selectedVendor}&text=${encodedMessage}`;
+
+    window.open(whatsappUrl, '_blank');
+}
+
                 sendMessageBtn.addEventListener('click', sendMessage);
             })
             .catch(error => console.error('Erro ao buscar dados:', error));
     </script>
-    
-
 </body>
 </html>
