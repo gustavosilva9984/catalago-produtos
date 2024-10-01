@@ -235,6 +235,8 @@
                 width: 100%;
                 page-break-inside: avoid;
                 height: 335px;
+                box-shadow: none;
+
             }
 
             .card img {
@@ -248,8 +250,13 @@
                 font-size: 10px;
                 font-style: italic;
             }
+
             #search-input{
              display: none;
+            }
+
+            .card .product-code {
+                color: rgb(126, 12, 12);
             }
         }
 
@@ -471,16 +478,17 @@
                     }
                 }
         
+                // Dentro do seu código após a definição de 'products'
                 function displayProducts(productsToDisplay) {
                     catalogContainer.innerHTML = '';
                     productsToDisplay.forEach(product => {
                         const nome = product[headerIndex.nome];
                         const codigo = product[headerIndex.codigo];
                         const img = product[headerIndex.img];
-        
+
                         const card = document.createElement('div');
                         card.className = 'card';
-        
+
                         card.innerHTML = `
                             <img src="${img}" alt="${nome}">
                             <div class="card-content">
@@ -492,22 +500,27 @@
                                 </div>
                             </div>
                         `;
-        
+
                         catalogContainer.appendChild(card);
                         card.querySelector('img').addEventListener('click', () => {
                             document.getElementById('modal-image').src = img;
                             document.getElementById('image-modal').style.display = 'flex';
                         });
-    
+
                         document.getElementById('image-modal').addEventListener('click', () => {
                             document.getElementById('image-modal').style.display = 'none';
                         });
                     });
-        
+
                     document.querySelectorAll('.add-to-cart-btn').forEach(button => {
                         button.addEventListener('click', addToCart);
                     });
                 }
+
+                // Ao carregar a página, exibir apenas os produtos da categoria "NOVIDADES"
+                const noveltiesProducts = products.filter(product => product[headerIndex.categoria] === 'NOVIDADES');
+                displayProducts(noveltiesProducts);
+
         
                 function filterProducts() {
                     const selectedCategory = categorySelect.value;
@@ -529,8 +542,11 @@
                     const searchTerm = searchInput.value.toLowerCase();
                     
                     if (searchTerm === '') {
-                        // Se a pesquisa estiver vazia, limpar o contêiner de produtos
-                        catalogContainer.innerHTML = '';
+                        // Se a pesquisa estiver vazia, filtra e exibe apenas os produtos da categoria "NOVIDADES"
+                        const filteredProducts = products.filter(product => {
+                            return product[headerIndex.categoria] === 'NOVIDADES';
+                        });
+                        displayProducts(filteredProducts);
                     } else {
                         const filteredProducts = products.filter(product => {
                             const productName = product[headerIndex.nome].toLowerCase();
@@ -540,6 +556,7 @@
                         displayProducts(filteredProducts);
                     }
                 });
+
 
         
                 categorySelect.addEventListener('change', () => {
