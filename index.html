@@ -10,35 +10,35 @@
     <style>
         /* (Mantenha o CSS existente) */
         * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
 
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
+            padding: 20px;
         }
 
         header {
-            height: 160px;
-            background-color: #ffffff;
+            background-color: #555;
             color: #fff;
             text-align: center;
-            padding-top: 15px;
+            padding: 20px;
             margin-bottom: 20px;
-            
         }
 
         .filters {
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
             align-items: center;
             margin-bottom: 20px;
-            justify-content: center;
         }
 
         .filters button,
         .filters select {
-            background-color: #5495da;
+            background-color: #007bff;
             color: #fff;
             border: none;
             border-radius: 5px;
@@ -51,7 +51,7 @@
 
         .filters button:hover,
         .filters select:hover {
-            background-color: #5495da;
+            background-color: #0056b3;
         }
 
         .filters select {
@@ -143,10 +143,10 @@
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background-color: #5495da;
+            background-color: #007bff;
             color: #fff;
-            width: 80px;
-            height: 80px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             display: flex;
             justify-content: center;
@@ -235,8 +235,6 @@
                 width: 100%;
                 page-break-inside: avoid;
                 height: 335px;
-                box-shadow: none;
-
             }
 
             .card img {
@@ -250,13 +248,8 @@
                 font-size: 10px;
                 font-style: italic;
             }
-
             #search-input{
              display: none;
-            }
-
-            .card .product-code {
-                color: rgb(126, 12, 12);
             }
         }
 
@@ -338,21 +331,17 @@
             font-size: 0.8em; /* Tamanho da fonte */
         }
 
-        .logo{
-            width: 300px;
-        }   
+
     </style>
 </head>
 <body>
     <header>
-        <img src="./Group 1.svg" alt="" class="logo">
-        <div class="contact">
-          
-        </div>
+        <h1>Catálogo de Produtos</h1>
+        <button class="print-button" onclick="window.print()">Imprimir</button>
     </header>
 
     <div class="filters" id="filters">
-        <button class="print-button" onclick="window.print()">Baixar Catálogo</button>
+        <button id="show-all">Todos</button>
         <select id="category-select">
             <option value="">Escolha uma categoria</option>
         </select>
@@ -482,17 +471,16 @@
                     }
                 }
         
-                // Dentro do seu código após a definição de 'products'
                 function displayProducts(productsToDisplay) {
                     catalogContainer.innerHTML = '';
                     productsToDisplay.forEach(product => {
                         const nome = product[headerIndex.nome];
                         const codigo = product[headerIndex.codigo];
                         const img = product[headerIndex.img];
-
+        
                         const card = document.createElement('div');
                         card.className = 'card';
-
+        
                         card.innerHTML = `
                             <img src="${img}" alt="${nome}">
                             <div class="card-content">
@@ -504,27 +492,22 @@
                                 </div>
                             </div>
                         `;
-
+        
                         catalogContainer.appendChild(card);
                         card.querySelector('img').addEventListener('click', () => {
                             document.getElementById('modal-image').src = img;
                             document.getElementById('image-modal').style.display = 'flex';
                         });
-
+    
                         document.getElementById('image-modal').addEventListener('click', () => {
                             document.getElementById('image-modal').style.display = 'none';
                         });
                     });
-
+        
                     document.querySelectorAll('.add-to-cart-btn').forEach(button => {
                         button.addEventListener('click', addToCart);
                     });
                 }
-
-                // Ao carregar a página, exibir apenas os produtos da categoria "NOVIDADES"
-                const noveltiesProducts = products.filter(product => product[headerIndex.categoria] === 'NOVIDADES');
-                displayProducts(noveltiesProducts);
-
         
                 function filterProducts() {
                     const selectedCategory = categorySelect.value;
@@ -546,11 +529,8 @@
                     const searchTerm = searchInput.value.toLowerCase();
                     
                     if (searchTerm === '') {
-                        // Se a pesquisa estiver vazia, filtra e exibe apenas os produtos da categoria "NOVIDADES"
-                        const filteredProducts = products.filter(product => {
-                            return product[headerIndex.categoria] === 'NOVIDADES';
-                        });
-                        displayProducts(filteredProducts);
+                        // Se a pesquisa estiver vazia, limpar o contêiner de produtos
+                        catalogContainer.innerHTML = '';
                     } else {
                         const filteredProducts = products.filter(product => {
                             const productName = product[headerIndex.nome].toLowerCase();
@@ -560,7 +540,6 @@
                         displayProducts(filteredProducts);
                     }
                 });
-
 
         
                 categorySelect.addEventListener('change', () => {
