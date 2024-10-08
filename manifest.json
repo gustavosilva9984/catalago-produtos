@@ -1,0 +1,22 @@
+{
+    "name": "Meu PWA",
+    "short_name": "PWA",
+    "description": "Este é o meu Progressive Web App",
+    "start_url": "/index.html",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#3f51b5",
+    "icons": [
+      {
+        "src": "./favicon.png",
+        "type": "image/png",
+        "sizes": "192x192"
+      },
+      {
+        "src": "./favicon.png",
+        "type": "image/png",
+        "sizes": "512x512"
+      }
+    ]
+  }
+  
