@@ -6,346 +6,10 @@
     <title>Catálogo de Produtos</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.css">
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="/manifest.json">
 
-    <style>
-        /* (Mantenha o CSS existente) */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            margin: 0;
-        }
-
-        header {
-            background-color: #ffffff;
-            text-align: center;
-            padding: 20px;
-            margin-bottom: 20px;
-            height: 170px;
-        }
-
-        .filters {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .filters button,
-        .filters select {
-            background-color: #5496dd;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            margin: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-
-        .filters button:hover,
-        .filters select:hover {
-            background-color: #0056b3;
-        }
-
-        .filters select {
-            padding: 8px;
-        }
-
-        .catalog-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-        }
-
-        .card {
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 300px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.3s;
-        }
-
-        .card:hover {
-            transform: scale(1.05);
-        }
-
-        .card img {
-            width: 100%;
-            height: 300px;
-            object-fit: contain;
-        }
-
-        .card-content {
-            padding: 15px;
-            text-align: center;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .card h3 {
-            font-size: 15px;
-            color: #333;
-            margin-bottom: 10px;
-            font-style: italic;
-        }
-
-        .card p {
-            font-size: 1em;
-            color: #666;
-            margin-bottom: 10px;
-            font-style: italic;
-        }
-
-        .card .product-code {
-            font-weight: bold;
-            color: #555;
-        }
-
-        .card-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 10px;
-        }
-
-        .quantity-input {
-            width: 50px;
-            padding: 5px;
-            text-align: center;
-        }
-
-        .add-to-cart-btn {
-            background-color: #28a745;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .add-to-cart-btn:hover {
-            background-color: #218838;
-        }
-
-        .cart-icon {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #5496dd;
-            color: #fff;
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            border: 1px solid #0056b3;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-        }
-
-        .cart-icon:hover {
-            background-color: #0056b3;
-        }
-
-        .cart-container {
-            position: fixed;
-            top: 0;
-            right: -300px;
-            width: 300px;
-            height: 100%;
-            background-color: #fff;
-            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-            transition: right 0.3s ease-in-out;
-            z-index: 1001;
-            overflow-y: auto;
-            padding: 20px;
-        }
-
-        .cart-container.open {
-            right: 0;
-        }
-
-        .close-cart {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            cursor: pointer;
-            font-size: 20px;
-        }
-
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .order-button {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background-color: #28a745;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-size: 16px;
-            text-decoration: none;
-            transition: background-color 0.3s;
-        }
-
-        .order-button:hover {
-            background-color: #218838;
-        }
-
-        @media print {
-            body {
-                margin: 0;
-                padding: 0;
-            }
-
-            header, .filters, .cart-icon, .cart-container, .card-actions {
-                display: none;
-            }
-
-            .catalog-container {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
-                margin: 0px;
-            }
-
-            .card {
-                width: 100%;
-                page-break-inside: avoid;
-                height: 335px;
-                box-shadow: none;
-                border: 0.5px solid  rgb(245, 241, 241);
-            }
-
-            .card img {
-                height: 280px;
-            }
-
-            .card-content {
-                font-size: 12px;
-            }
-            .card h3 {
-                font-size: 10px;
-                font-style: italic;
-            }
-            #search-input{
-             display: none;
-            }
-            .card .product-code {
-                color: rgb(126, 12, 12);
-            }
-        }
-
-        .vendor-select {
-            margin: 20px 0;
-        }
-
-        .vendor-select select {
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-
-        .vendor-select select:hover {
-            background-color: #0056b3;
-        }
-
-        .send-message-btn {
-            background-color: #28a745;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-size: 16px;
-            text-decoration: none;
-            transition: background-color 0.3s;
-        }
-
-        .send-message-btn:hover {
-            background-color: #218838;
-        }
-        .search-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .search-container input {
-            width: 300px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        .search-container input:focus {
-            border-color: #007bff;
-            outline: none;
-        }
-        .print-button {
-            background-color: #5496dd;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            margin: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-
-        }
-        .print-button:hover {
-         background-color: #0056b3;
-        }
-        .cart-count {
-            background-color: red; /* Cor de fundo vermelha */
-            color: white; /* Cor do texto em branco */
-            border-radius: 50%; /* Forma redonda */
-            padding: 5px 10px; /* Espaçamento interno */
-            position: absolute; /* Para posicionar sobre o ícone */
-            top: -5px; /* Ajuste a posição conforme necessário */
-            right: -10px; /* Ajuste a posição conforme necessário */
-            font-size: 0.8em; /* Tamanho da fonte */
-        }
-        #show-all{
-            display: none;
-        }
-        .logo{
-            height: 190px;
-        }
-    </style>
+    
 </head>
 <body>
     <header>
@@ -389,8 +53,10 @@
     <div id="image-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index: 1000;">
         <img id="modal-image" style="max-width:90%; max-height:90%;">
     </div>
-
+  
+     
     <script>
+        
         const sheetId = '1mJbjNBsfJQmhThpFvaYchuvNslHtRBPWiV7fgzONJl8';
         const apiKey = 'AIzaSyBUBfQAzykuAOrdQzJHR_RTVzK0R5HhFrM';
         const sheetName = 'Pagina1';
@@ -679,8 +345,16 @@
                 sendMessageBtn.addEventListener('click', sendMessage);
             })
             .catch(error => console.error('Erro ao buscar dados:', error));
+            if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js').then((registration) => {
+      console.log('ServiceWorker registrado com sucesso: ', registration.scope);
+    }, (err) => {
+      console.log('Falha ao registrar o ServiceWorker: ', err);
+    });
+  });
+}
+
     </script>
-
-
 </body>
 </html>
