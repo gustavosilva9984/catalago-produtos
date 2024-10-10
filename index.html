@@ -4,12 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo de Produtos</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.css">
-    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="/manifest.json">
-
     
+    <!-- CSS do Toastify -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.css">
+    
+    <!-- Biblioteca Toastify -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Manifesto da Aplicação -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Biblioteca jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Expor jsPDF globalmente
+        window.jsPDF = window.jspdf.jsPDF;
+    </script>
 </head>
 <body>
     <header>
@@ -39,367 +52,519 @@
 
     <div class="cart-container" id="cart-container">
         <div class="close-cart" id="close-cart">×</div>
-        <h2>Carrinho de Compras</h2>
-        <div id="cart-items"></div>
-        <div class="cart-footer">
-            <div class="vendor-select">
-                <select id="vendor-select">
-                    <option value="">Escolha um vendedor</option>
-                </select>
+        <img src="./shopping-cart.png" alt="" class="ftcarrinho">
+        <div class="cart-footer"></div>
+            <!-- Novos campos de entrada para Nome e CNPJ -->
+            <div class="client-info">
+                <label for="client-name">Nome do Cliente:</label>
+                <input type="text" id="client-name" placeholder="Digite o nome do cliente" required>
             </div>
-            <button class="send-message-btn" id="send-message-btn">Enviar Mensagem</button>
+            <div class="client-info">
+                <label for="client-cnpj">CNPJ:</label>
+                <input type="number" id="client-cnpj" placeholder="Digite o CNPJ" required>
+            </div>
+            <button id="download-pdf">Baixar PDF Compra</button>
+            <div id="cart-items"></div>
+        </div>
+        
+        
+    </div>
+    <button id="show-sellers"><img src="./whatsapp.png" alt="" class="whatsapp"></button>
+
+    <!-- Modal para exibir os vendedores -->
+    <div id="sellers-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.7); justify-content:center; align-items:center;">
+        <div style="background:white; padding:20px; border-radius:8px; display: flex; justify-content: center; flex-direction: column; align-items: center;">
+            <h2>Vendedores Disponíveis</h2>
+            <ul id="sellers-list"></ul>
+            <button id="close-sellers">VOLTAR</button>
         </div>
     </div>
+
     <div id="image-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index: 1000;">
         <img id="modal-image" style="max-width:90%; max-height:90%;">
     </div>
-  
+      
      
     <script>
         
         const sheetId = '1mJbjNBsfJQmhThpFvaYchuvNslHtRBPWiV7fgzONJl8';
-const apiKey = 'AIzaSyBUBfQAzykuAOrdQzJHR_RTVzK0R5HhFrM';
-const sheetName1 = 'Pagina1'; // Primeira página com nome, código, etc.
-const sheetName2 = 'Pagina2'; // Segunda página com código e preço
-
-// Especificar intervalos corretos para cada folha
-const url1 = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName1}!A:Z?key=${apiKey}`;
-const url2 = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName2}!A:B?key=${apiKey}`;
-
-// Função para verificar se a resposta da API contém dados válidos
-function validateSheetData(data, sheetName) {
-    if (!data || !data.values || data.values.length === 0) {
-        throw new Error(`Nenhum dado encontrado na folha "${sheetName}". Verifique o nome da folha e o intervalo.`);
-    }
-}
-
-// Requisição das duas folhas usando Promise.all
-Promise.all([fetch(url1), fetch(url2)])
-    .then(async (responses) => {
-        // Verificar se todas as respostas são bem-sucedidas
-        for (let i = 0; i < responses.length; i++) {
-            if (!responses[i].ok) {
-                const errorText = await responses[i].text();
-                throw new Error(`Erro na requisição para a folha ${i === 0 ? sheetName1 : sheetName2}: ${responses[i].status} - ${errorText}`);
+        const apiKey = 'AIzaSyBUBfQAzykuAOrdQzJHR_RTVzK0R5HhFrM';
+        const sheetName1 = 'Pagina1'; // Primeira página com nome, código, etc.
+        const sheetName2 = 'Pagina2'; // Segunda página com código e preço
+        
+        // Especificar intervalos corretos para cada folha
+        const url1 = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName1}!A:Z?key=${apiKey}`;
+        const url2 = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName2}!A:B?key=${apiKey}`;
+        
+        // Função para verificar se a resposta da API contém dados válidos
+        function validateSheetData(data, sheetName) {
+            if (!data || !data.values || data.values.length === 0) {
+                throw new Error(`Nenhum dado encontrado na folha "${sheetName}". Verifique o nome da folha e o intervalo.`);
             }
         }
-        return Promise.all(responses.map(response => response.json()));
-    })
-    .then(([data1, data2]) => {
-        // Validar os dados recebidos
-        validateSheetData(data1, sheetName1);
-        validateSheetData(data2, sheetName2);
-
-        const headers1 = data1.values[0];
-        const products1 = data1.values.slice(1);
-        const headers2 = data2.values[0];
-        const products2 = data2.values.slice(1);
-
-        const headerIndex1 = {
-            nome: headers1.indexOf('nome'),
-            codigo: headers1.indexOf('codigo'),
-            img: headers1.indexOf('img'),
-            categoria: headers1.indexOf('categoria'),
-            subcategoria: headers1.indexOf('subcategoria')
-        };
-
-        const headerIndex2 = {
-            codigo: headers2.indexOf('codigo'),
-            preco: headers2.indexOf('preco')
-        };
-
-        // Verificar se todas as colunas necessárias estão presentes
-        if (Object.values(headerIndex1).includes(-1)) {
-            throw new Error('Uma ou mais colunas necessárias não foram encontradas na folha Pagina1.');
+        
+        // Função para truncar o texto se exceder o comprimento máximo
+        function truncateText(text, maxLength) {
+            if (text.length > maxLength) {
+                return text.substring(0, maxLength) + '...';
+            }
+            return text;
         }
 
-        if (Object.values(headerIndex2).includes(-1)) {
-            throw new Error('Uma ou mais colunas necessárias não foram encontradas na folha Pagina2.');
-        }
-
-        // Mesclar produtos com base no código
-        const mergedProducts = products1.map(product1 => {
-            const codigo = product1[headerIndex1.codigo];
-            const matchingProduct2 = products2.find(product2 => product2[headerIndex2.codigo] === codigo);
-            const preco = matchingProduct2 ? matchingProduct2[headerIndex2.preco] : 'Preço não disponível';
-
-            return {
-                ...product1,
-                preco // Adiciona o preço ao produto mesclado
-            };
-        });
-
-        const catalogContainer = document.getElementById('catalog-container');
-        const categorySelect = document.getElementById('category-select');
-        const subcategorySelect = document.getElementById('subcategory-select');
-        const vendorSelect = document.getElementById('vendor-select');
-        const sendMessageBtn = document.getElementById('send-message-btn');
-
-        // Array de vendedores
-        const vendors = [
-            { name: 'GUSTAVO', whatsapp: '+55038998853882' },
-            { name: 'GABRIEL', whatsapp: '+55038997299051' },
-            // Adicione mais vendedores conforme necessário
+        // Lista de vendedores
+        const sellers = [
+            { name: 'GUSTAVO', whatsapp: '5538998853882' },
+            { name: 'GABRIEL', whatsapp: '55988888888' },
+            { name: 'LEANDRO', whatsapp: '553898518693' }
         ];
 
-        // Preencher o seletor de vendedores
-        vendors.forEach(vendor => {
-            const option = document.createElement('option');
-            option.value = vendor.whatsapp;
-            option.textContent = vendor.name;
-            vendorSelect.appendChild(option);
+        const showSellersButton = document.getElementById('show-sellers');
+        const sellersModal = document.getElementById('sellers-modal');
+        const sellersList = document.getElementById('sellers-list');
+        const closeSellersButton = document.getElementById('close-sellers');
+
+        // Função para exibir os vendedores no modal
+        function showSellers() {
+            sellersList.innerHTML = ''; // Limpa a lista de vendedores
+            sellers.forEach(seller => {
+                const listItem = document.createElement('li');
+                listItem.textContent = seller.name;
+                listItem.style.cursor = 'pointer';
+                listItem.onclick = () => {
+                    // Redireciona para o WhatsApp ao clicar no vendedor
+                    window.open(`https://wa.me/${seller.whatsapp}`, '_blank');
+                };
+                sellersList.appendChild(listItem);
+            });
+            sellersModal.style.display = 'flex'; // Exibe o modal
+        }
+
+        // Adiciona eventos aos botões
+        showSellersButton.addEventListener('click', showSellers);
+        closeSellersButton.addEventListener('click', () => {
+            sellersModal.style.display = 'none'; // Fecha o modal
         });
 
-        const categories = new Set();
-        const subcategories = new Map();
-
-        mergedProducts.forEach(product => {
-            const category = product[headerIndex1.categoria];
-            const subcategory = product[headerIndex1.subcategoria];
-
-            categories.add(category);
-            if (category && subcategory) {
-                if (!subcategories.has(category)) {
-                    subcategories.set(category, new Set());
-                }
-                subcategories.get(category).add(subcategory);
+        // Adiciona evento para fechar o modal ao clicar fora dele
+        sellersModal.addEventListener('click', (event) => {
+            if (event.target === sellersModal) {
+                sellersModal.style.display = 'none'; // Fecha o modal
             }
         });
 
-        categories.forEach(category => {
-            const option = document.createElement('option');
-            option.value = category;
-            option.textContent = category;
-            categorySelect.appendChild(option);
-        });
-
-        // Adicionar a opção "Todas as subcategorias"
-        const allOption = document.createElement('option');
-        allOption.value = '';
-        allOption.textContent = 'Todas as subcategorias';
-        subcategorySelect.appendChild(allOption);
-
-        function updateSubcategories() {
-            const selectedCategory = categorySelect.value;
-            subcategorySelect.innerHTML = '<option value="">Escolha uma subcategoria</option>';
-
-            if (selectedCategory) {
-                const subcategoriesForCategory = subcategories.get(selectedCategory);
-                if (subcategoriesForCategory) {
-                    subcategoriesForCategory.forEach(subcategory => {
-                        const option = document.createElement('option');
-                        option.value = subcategory;
-                        option.textContent = subcategory;
-                        subcategorySelect.appendChild(option);
+        // Requisição das duas folhas usando Promise.all
+        Promise.all([fetch(url1), fetch(url2)])
+            .then(async (responses) => {
+                // Verificar se todas as respostas são bem-sucedidas
+                for (let i = 0; i < responses.length; i++) {
+                    if (!responses[i].ok) {
+                        const errorText = await responses[i].text();
+                        throw new Error(`Erro na requisição para a folha ${i === 0 ? sheetName1 : sheetName2}: ${responses[i].status} - ${errorText}`);
+                    }
+                }
+                return Promise.all(responses.map(response => response.json()));
+            })
+            .then(([data1, data2]) => {
+                // Validar os dados recebidos
+                validateSheetData(data1, sheetName1);
+                validateSheetData(data2, sheetName2);
+        
+                const headers1 = data1.values[0];
+                const products1 = data1.values.slice(1);
+                const headers2 = data2.values[0];
+                const products2 = data2.values.slice(1);
+        
+                const headerIndex1 = {
+                    nome: headers1.indexOf('nome'),
+                    codigo: headers1.indexOf('codigo'),
+                    img: headers1.indexOf('img'),
+                    categoria: headers1.indexOf('categoria'),
+                    subcategoria: headers1.indexOf('subcategoria')
+                };
+        
+                const headerIndex2 = {
+                    codigo: headers2.indexOf('codigo'),
+                    preco: headers2.indexOf('preco')
+                };
+        
+                // Verificar se todas as colunas necessárias estão presentes
+                if (Object.values(headerIndex1).includes(-1)) {
+                    throw new Error('Uma ou mais colunas necessárias não foram encontradas na folha Pagina1.');
+                }
+        
+                if (Object.values(headerIndex2).includes(-1)) {
+                    throw new Error('Uma ou mais colunas necessárias não foram encontradas na folha Pagina2.');
+                }
+        
+                // Mesclar produtos com base no código
+                const mergedProducts = products1.map(product1 => {
+                    const codigo = product1[headerIndex1.codigo];
+                    const matchingProduct2 = products2.find(product2 => product2[headerIndex2.codigo] === codigo);
+                    const preco = matchingProduct2 ? matchingProduct2[headerIndex2.preco] : 'Preço não disponível';
+        
+                    return {
+                        ...product1,
+                        preco // Adiciona o preço ao produto mesclado
+                    };
+                });
+        
+                const catalogContainer = document.getElementById('catalog-container');
+                const categorySelect = document.getElementById('category-select');
+                const subcategorySelect = document.getElementById('subcategory-select');
+        
+        
+                const categories = new Set();
+                const subcategories = new Map();
+        
+                mergedProducts.forEach(product => {
+                    const category = product[headerIndex1.categoria];
+                    const subcategory = product[headerIndex1.subcategoria];
+        
+                    categories.add(category);
+                    if (category && subcategory) {
+                        if (!subcategories.has(category)) {
+                            subcategories.set(category, new Set());
+                        }
+                        subcategories.get(category).add(subcategory);
+                    }
+                });
+        
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    categorySelect.appendChild(option);
+                });
+        
+                // Adicionar a opção "Todas as subcategorias"
+                const allOption = document.createElement('option');
+                allOption.value = '';
+                allOption.textContent = 'Todas as subcategorias';
+                subcategorySelect.appendChild(allOption);
+        
+                function updateSubcategories() {
+                    const selectedCategory = categorySelect.value;
+                    subcategorySelect.innerHTML = '<option value="">Escolha uma subcategoria</option>';
+        
+                    if (selectedCategory) {
+                        const subcategoriesForCategory = subcategories.get(selectedCategory);
+                        if (subcategoriesForCategory) {
+                            subcategoriesForCategory.forEach(subcategory => {
+                                const option = document.createElement('option');
+                                option.value = subcategory;
+                                option.textContent = subcategory;
+                                subcategorySelect.appendChild(option);
+                            });
+                        }
+                        subcategorySelect.style.display = 'block';
+                    } else {
+                        subcategorySelect.style.display = 'none';
+                    }
+                }
+        
+                function displayProducts(productsToDisplay) {
+                    catalogContainer.innerHTML = '';
+                    productsToDisplay.forEach(product => {
+                        const nome = product[headerIndex1.nome];
+                        const codigo = product[headerIndex1.codigo];
+                        const img = product[headerIndex1.img];
+                        const preco = product.preco;
+        
+                        const card = document.createElement('div');
+                        card.className = 'card';
+        
+                        card.innerHTML = `
+                            <img src="${img}" alt="${nome}">
+                            <div class="card-content">
+                                <h3>${nome}</h3>
+                                <p class="product-code">Código: ${codigo}</p>
+                                <p class="product-price">R$ ${preco}</p>
+                                <div class="card-actions">
+                                    <input type="number" class="quantity-input" value="1" min="1">
+                                    <button class="add-to-cart-btn" data-product='${JSON.stringify(product)}'>Adicionar</button>
+                                </div>
+                            </div>
+                        `;
+        
+                        catalogContainer.appendChild(card);
+        
+                        // Evento para exibir imagem em modal
+                        card.querySelector('img').addEventListener('click', () => {
+                            document.getElementById('modal-image').src = img;
+                            document.getElementById('image-modal').style.display = 'flex';
+                        });
+        
+                        // Evento para fechar o modal
+                        document.getElementById('image-modal').addEventListener('click', () => {
+                            document.getElementById('image-modal').style.display = 'none';
+                        });
+                    });
+        
+                    // Adicionar eventos aos botões "Adicionar ao carrinho"
+                    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+                        button.addEventListener('click', addToCart);
                     });
                 }
-                subcategorySelect.style.display = 'block';
-            } else {
-                subcategorySelect.style.display = 'none';
-            }
-        }
-
-        function displayProducts(productsToDisplay) {
-            catalogContainer.innerHTML = '';
-            productsToDisplay.forEach(product => {
-                const nome = product[headerIndex1.nome];
-                const codigo = product[headerIndex1.codigo];
-                const img = product[headerIndex1.img];
-                const preco = product.preco;
-
-                const card = document.createElement('div');
-                card.className = 'card';
-
-                card.innerHTML = `
-                    <img src="${img}" alt="${nome}">
-                    <div class="card-content">
-                        <h3>${nome}</h3>
-                        <p class="product-code">Código: ${codigo}</p>
-                        <p class="product-price">R$ ${preco}</p>
-                        <div class="card-actions">
-                            <input type="number" class="quantity-input" value="1" min="1">
-                            <button class="add-to-cart-btn" data-product='${JSON.stringify(product)}'>Adicionar</button>
-                        </div>
-                    </div>
-                `;
-
-                catalogContainer.appendChild(card);
-
-                // Evento para exibir imagem em modal
-                card.querySelector('img').addEventListener('click', () => {
-                    document.getElementById('modal-image').src = img;
-                    document.getElementById('image-modal').style.display = 'flex';
+        
+                // Ao carregar a página, exibir apenas os produtos da categoria "NOVIDADES"
+                const noveltiesProducts = mergedProducts.filter(product => product[headerIndex1.categoria] === 'NOVIDADES');
+                displayProducts(noveltiesProducts);
+        
+                function filterProducts() {
+                    const selectedCategory = categorySelect.value;
+                    const selectedSubcategory = subcategorySelect.value;
+        
+                    const filteredProducts = mergedProducts.filter(product => {
+                        const productCategory = product[headerIndex1.categoria];
+                        const productSubcategory = product[headerIndex1.subcategoria];
+                        return (selectedCategory === '' || productCategory === selectedCategory) &&
+                               (selectedSubcategory === '' || productSubcategory === selectedSubcategory);
+                    });
+        
+                    displayProducts(filteredProducts);
+                }
+        
+                const searchInput = document.getElementById('search-input');
+        
+                searchInput.addEventListener('input', () => {
+                    const searchTerm = searchInput.value.toLowerCase();
+        
+                    if (searchTerm === '') {
+                        catalogContainer.innerHTML = '';
+                        const filteredProducts = mergedProducts.filter(product => product[headerIndex1.categoria] === 'NOVIDADES');
+                        displayProducts(filteredProducts);
+                    } else {
+                        const filteredProducts = mergedProducts.filter(product => {
+                            const productName = product[headerIndex1.nome].toLowerCase();
+                            const productCode = product[headerIndex1.codigo].toLowerCase();
+                            return productName.includes(searchTerm) || productCode.includes(searchTerm);
+                        });
+                        displayProducts(filteredProducts);
+                    }
                 });
-
-                // Evento para fechar o modal
-                document.getElementById('image-modal').addEventListener('click', () => {
-                    document.getElementById('image-modal').style.display = 'none';
+        
+                categorySelect.addEventListener('change', () => {
+                    updateSubcategories();
+                    if (categorySelect.value) {
+                        filterProducts();
+                    } else {
+                        catalogContainer.innerHTML = ''; // Limpa os produtos se nenhuma categoria for selecionada
+                    }
                 });
-            });
-
-            // Adicionar eventos aos botões "Adicionar ao carrinho"
-            document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-                button.addEventListener('click', addToCart);
-            });
-        }
-
-        // Ao carregar a página, exibir apenas os produtos da categoria "NOVIDADES"
-        const noveltiesProducts = mergedProducts.filter(product => product[headerIndex1.categoria] === 'NOVIDADES');
-        displayProducts(noveltiesProducts);
-
-        function filterProducts() {
-            const selectedCategory = categorySelect.value;
-            const selectedSubcategory = subcategorySelect.value;
-
-            const filteredProducts = mergedProducts.filter(product => {
-                const productCategory = product[headerIndex1.categoria];
-                const productSubcategory = product[headerIndex1.subcategoria];
-                return (selectedCategory === '' || productCategory === selectedCategory) &&
-                       (selectedSubcategory === '' || productSubcategory === selectedSubcategory);
-            });
-
-            displayProducts(filteredProducts);
-        }
-
-        const searchInput = document.getElementById('search-input');
-
-        searchInput.addEventListener('input', () => {
-            const searchTerm = searchInput.value.toLowerCase();
-
-            if (searchTerm === '') {
-                catalogContainer.innerHTML = '';
-                const filteredProducts = mergedProducts.filter(product => product[headerIndex1.categoria] === 'NOVIDADES');
-                displayProducts(filteredProducts);
-            } else {
-                const filteredProducts = mergedProducts.filter(product => {
-                    const productName = product[headerIndex1.nome].toLowerCase();
-                    const productCode = product[headerIndex1.codigo].toLowerCase();
-                    return productName.includes(searchTerm) || productCode.includes(searchTerm);
+        
+                subcategorySelect.addEventListener('change', filterProducts);
+        
+                // Funcionalidade do carrinho
+                let cart = [];
+        
+                function addToCart(event) {
+                    const product = JSON.parse(event.target.getAttribute('data-product'));
+                    const quantity = parseInt(event.target.previousElementSibling.value);
+        
+                    const existingItem = cart.find(item => item.product[headerIndex1.codigo] === product[headerIndex1.codigo]);
+        
+                    if (existingItem) {
+                        existingItem.quantity += quantity;
+                    } else {
+                        cart.push({ product, quantity });
+                    }
+        
+                    updateCartDisplay();
+                    updateCartCount();
+                    Toastify({
+                        text: `Produto adicionado: ${product[headerIndex1.nome]} (Quantidade: ${quantity})`,
+                        duration: 3000,
+                        close: true,
+                        gravity: "top",
+                        position: 'right',
+                        backgroundColor: "#28a745",
+                    }).showToast();
+                }
+        
+                function updateCartCount() {
+                    const cartCount = document.getElementById('cart-count');
+                    cartCount.textContent = cart.length; // Atualiza a contagem com o número de produtos únicos
+                }
+        
+                function updateCartDisplay() {
+                    const cartItems = document.getElementById('cart-items');
+                    cartItems.innerHTML = '';
+        
+                    cart.forEach(item => {
+                        const cartItem = document.createElement('div');
+                        cartItem.className = 'cart-item';
+                        cartItem.innerHTML = `
+                            <span>${item.product[headerIndex1.nome]} (${item.quantity})</span>
+                            <button class="remove-item" data-code="${item.product[headerIndex1.codigo]}">Remover</button>
+                        `;
+                        cartItems.appendChild(cartItem);
+                    });
+        
+                    document.querySelectorAll('.remove-item').forEach(button => {
+                        button.addEventListener('click', removeFromCart);
+                    });
+                }
+        
+                function removeFromCart(event) {
+                    const codeToRemove = event.target.getAttribute('data-code');
+                    cart = cart.filter(item => item.product[headerIndex1.codigo] !== codeToRemove);
+                    updateCartDisplay();
+                    updateCartCount();
+                }
+        
+                const cartIcon = document.getElementById('cart-icon');
+                const cartContainer = document.getElementById('cart-container');
+                const closeCart = document.getElementById('close-cart');
+        
+                cartIcon.addEventListener('click', () => {
+                    cartContainer.classList.add('open');
                 });
-                displayProducts(filteredProducts);
-            }
-        });
-
-        categorySelect.addEventListener('change', () => {
-            updateSubcategories();
-            if (categorySelect.value) {
-                filterProducts();
-            } else {
-                catalogContainer.innerHTML = ''; // Limpa os produtos se nenhuma categoria for selecionada
-            }
-        });
-
-        subcategorySelect.addEventListener('change', filterProducts);
-
-        // Funcionalidade do carrinho
-        let cart = [];
-
-        function addToCart(event) {
-            const product = JSON.parse(event.target.getAttribute('data-product'));
-            const quantity = parseInt(event.target.previousElementSibling.value);
-
-            const existingItem = cart.find(item => item.product[headerIndex1.codigo] === product[headerIndex1.codigo]);
-
-            if (existingItem) {
-                existingItem.quantity += quantity;
-            } else {
-                cart.push({ product, quantity });
-            }
-
-            updateCartDisplay();
-            updateCartCount();
-            Toastify({
-                text: `Produto adicionado: ${product[headerIndex1.nome]} (Quantidade: ${quantity})`,
-                duration: 3000,
-                close: true,
-                gravity: "top",
-                position: 'right',
-                backgroundColor: "#28a745",
-            }).showToast();
-        }
-
-        function updateCartCount() {
-            const cartCount = document.getElementById('cart-count');
-            cartCount.textContent = cart.length; // Atualiza a contagem com o número de produtos únicos
-        }
-
-        function updateCartDisplay() {
-            const cartItems = document.getElementById('cart-items');
-            cartItems.innerHTML = '';
-
-            cart.forEach(item => {
-                const cartItem = document.createElement('div');
-                cartItem.className = 'cart-item';
-                cartItem.innerHTML = `
-                    <span>${item.product[headerIndex1.nome]} (${item.quantity})</span>
-                    <button class="remove-item" data-code="${item.product[headerIndex1.codigo]}">Remover</button>
-                `;
-                cartItems.appendChild(cartItem);
+        
+                closeCart.addEventListener('click', () => {
+                    cartContainer.classList.remove('open');
+                });
+        
+                const showAllButton = document.getElementById('show-all');
+                showAllButton.addEventListener('click', () => {
+                    categorySelect.value = '';
+                    subcategorySelect.value = '';
+                    subcategorySelect.style.display = 'none';
+                    catalogContainer.innerHTML = ''; // Limpa os produtos
+                });
+    
+                // Função para baixar o conteúdo do carrinho como PDF (Atualizada)
+                function downloadCartAsPDF() {
+                    const doc = new jsPDF();
+        
+                    // Capturar os valores dos inputs
+                    const clientName = document.getElementById('client-name').value.trim();
+                    const clientCNPJ = document.getElementById('client-cnpj').value.trim();
+    
+                    // Validação simples dos inputs
+                    if (clientName === '' || clientCNPJ === '') {
+                        alert('Por favor, preencha o nome do cliente e o CNPJ antes de gerar o PDF.');
+                        return;
+                    }
+        
+                    // Adiciona título e informações do cliente ao PDF
+                    doc.setFontSize(16);
+                    doc.text("BELA VISTA COMERCIO E DISTRIBUIDORA", 50, 10);
+        
+                    doc.setFontSize(12);
+                    doc.text(`Nome do Cliente: ${clientName}`, 10, 20);
+                    doc.text(`CNPJ: ${clientCNPJ}`, 10, 27);
+        
+                    // Define os cabeçalhos da tabela
+                    doc.setFontSize(12);
+                    doc.text("Código", 10, 40);
+                    doc.text("Descrição", 40, 40);
+                    doc.text("Quantidade", 150, 40);
+                    doc.text("Preço (R$)", 180, 40);
+        
+                    // Linha separadora dos cabeçalhos
+                    doc.line(10, 42, 200, 42);
+        
+                    // Define a posição inicial para os itens
+                    let y = 50;
+                    const lineHeight = 7; // Altura de cada linha
+        
+                    // Larguras das colunas
+                    const codeX = 10;
+                    const descX = 40;
+                    const qtyX = 150;
+                    const priceX = 180;
+                    const descWidth = 80;
+                    const maxDescLength = 40; // Comprimento máximo da descrição
+        
+                    // Inicializa o total
+                    let total = 0;
+        
+                    // Adiciona os itens do carrinho
+                    cart.forEach(item => {
+                        const codigo = item.product[headerIndex1.codigo];
+                        const descricao = truncateText(item.product[headerIndex1.nome], maxDescLength);
+                        const quantidade = item.quantity;
+        
+                        // Converter preço para número, removendo possíveis símbolos
+                        let preco = item.product.preco;
+                        preco = typeof preco === 'string' ? preco.replace(/[^\d,.-]/g, '').replace(',', '.') : preco;
+                        const precoNumerico = parseFloat(preco) || 0;
+        
+                        // Atualiza o total
+                        total += precoNumerico * quantidade;
+        
+                        // Verifica se é necessário adicionar uma nova página antes de desenhar o item
+                        if (y + lineHeight > 280) { // Ajuste conforme necessário
+                            doc.addPage();
+                            y = 10; // Reinicia a posição y na nova página
+        
+                            // Reescreve os cabeçalhos na nova página
+                            doc.setFontSize(12);
+                            doc.text("Carrinho de Compras", 10, y);
+                            y += 10;
+                            doc.text(`Nome do Cliente: ${clientName}`, 10, y);
+                            y += 7;
+                            doc.text(`CNPJ: ${clientCNPJ}`, 10, y);
+                            y += 7;
+                            doc.line(10, y, 200, y);
+                            y += 10;
+                            doc.text("Código", 10, y);
+                            doc.text("Descrição", 40, y);
+                            doc.text("Quantidade", 150, y);
+                            doc.text("Preço (R$)", 180, y);
+                            doc.line(10, y + 2, 200, y + 2);
+                            y += 10;
+                        }
+        
+                        // Desenha o código
+                        doc.text(codigo, codeX, y);
+        
+                        // Desenha a descrição
+                        doc.text(descricao, descX, y);
+        
+                        // Desenha a quantidade
+                        doc.text(String(quantidade), qtyX, y);
+        
+                        // Desenha o preço
+                        doc.text(precoNumerico.toFixed(2), priceX, y);
+        
+                        // Desenha a linha separadora abaixo do produto
+                        doc.line(10, y + 2, 200, y + 2);
+        
+                        // Atualiza a posição y para o próximo produto
+                        y += lineHeight + 2; // Espaço após a linha
+                    });
+        
+                    // Adiciona uma linha antes do total
+                    doc.line(10, y, 200, y);
+                    y += lineHeight;
+        
+                    // Formata o total para duas casas decimais
+                    const totalFormatado = total.toFixed(2);
+        
+                    // Adiciona o total ao PDF
+                    doc.setFontSize(14);
+                    doc.text(`Total: R$ ${totalFormatado}`, 10, y);
+        
+                    // Salva o PDF
+                    doc.save(`PEDIDO_BELA_VISTA_DISTRIBUIDORA_${clientName}.pdf`);
+                    
+                    alert("AGORA POR FAVOR ENVIE O PDF DA COMPRA AO SEU VENDEDOR REPRESENTANTE!");
+        
+                    // Exibe o modal para escolher o vendedor após o download do PDF
+                    showSellers();
+                }
+        
+                // Adiciona o evento de clique ao botão "PDF COMPRA"
+                document.getElementById('download-pdf').addEventListener('click', downloadCartAsPDF);
+        
+            })
+            .catch(error => {
+                console.error('Erro ao buscar dados das planilhas:', error);
+                alert(`Erro ao buscar dados das planilhas: ${error.message}`);
             });
-
-            document.querySelectorAll('.remove-item').forEach(button => {
-                button.addEventListener('click', removeFromCart);
-            });
-        }
-
-        function removeFromCart(event) {
-            const codeToRemove = event.target.getAttribute('data-code');
-            cart = cart.filter(item => item.product[headerIndex1.codigo] !== codeToRemove);
-            updateCartDisplay();
-            updateCartCount();
-        }
-
-        const cartIcon = document.getElementById('cart-icon');
-        const cartContainer = document.getElementById('cart-container');
-        const closeCart = document.getElementById('close-cart');
-
-        cartIcon.addEventListener('click', () => {
-            cartContainer.classList.add('open');
-        });
-
-        closeCart.addEventListener('click', () => {
-            cartContainer.classList.remove('open');
-        });
-
-        const showAllButton = document.getElementById('show-all');
-        showAllButton.addEventListener('click', () => {
-            categorySelect.value = '';
-            subcategorySelect.value = '';
-            subcategorySelect.style.display = 'none';
-            catalogContainer.innerHTML = ''; // Limpa os produtos
-        });
-
-        function sendMessage() {
-            const selectedVendor = vendorSelect.value;
-
-            if (!selectedVendor) {
-                alert('Por favor, escolha um vendedor.');
-                return;
-            }
-
-            if (cart.length === 0) {
-                alert('O carrinho está vazio.');
-                return;
-            }
-
-            let message = 'Olá, gostaria de fazer um pedido:\n\n';
-            cart.forEach(item => {
-                message += `• (Código: ${item.product[headerIndex1.codigo]}) - Quantidade: ${item.quantity}\n`;
-            });
-
-            const encodedMessage = encodeURIComponent(message);
-            const whatsappUrl = `https://api.whatsapp.com/send?phone=${selectedVendor}&text=${encodedMessage}`;
-
-            window.open(whatsappUrl, '_blank');
-        }
-
-        sendMessageBtn.addEventListener('click', sendMessage);
-    })
-    .catch(error => {
-        console.error('Erro ao buscar dados das planilhas:', error);
-        alert(`Erro ao buscar dados das planilhas: ${error.message}`);
-    });
-
+    
     </script>
+    
 </body>
 </html>
