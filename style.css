@@ -361,6 +361,7 @@
             top: 470px;
             border-radius: 50px;
             border: none;
+            display: none;
         }
 
         .whatsapp{
