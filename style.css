@@ -134,7 +134,7 @@
         .cart-icon {
             position: fixed;
             bottom: 20px;
-            right: 20px;
+            right: 25px;
             background-color: #5496dd;
             color: #fff;
             width: 70px;
@@ -172,10 +172,17 @@
 
         .close-cart {
             position: absolute;
-            top: 10px;
+            top: 25px;
             right: 10px;
             cursor: pointer;
             font-size: 20px;
+            background-color: rgb(216, 40, 40);
+            border-radius: 5px;
+            height: 20px;
+            width: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .cart-item {
@@ -185,6 +192,7 @@
             margin-bottom: 10px;
             padding-bottom: 10px;
             border-bottom: 1px solid #eee;
+            font-size: 12px;
         }
 
         .order-button {
@@ -247,6 +255,12 @@
             }
             .card .product-code {
                 color: rgb(126, 12, 12);
+            }
+            .whatsapp{
+                display: none;
+            }
+            #show-sellers{
+                display: none;
             }
         }
 
@@ -334,4 +348,79 @@
         .logo{
             height: 190px;
         }
-   
+
+        #show-sellers{
+            width: 70px;
+            height: 70px;
+            background-color: #007bff;
+            position: fixed;
+            top: 0;
+            right: 25px;
+            top: 470px;
+            border-radius: 50px;
+            border: none;
+        }
+
+        .whatsapp{
+            width: 70px;
+            height: 70px;
+        }
+        #sellers-list{
+            font-weight: 500;
+    
+            
+        }
+
+        #sellers-list li {
+            list-style: none;
+            border: 1px solid gray;
+            border-radius: 9px;
+            height: 25px;
+            font-size: 20px;
+            margin: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            font-weight: bold;
+        }
+        #close-sellers{
+            background-color: rgb(216, 40, 40);
+            font-size: 19px;
+            font-weight: bold;
+            border: none;
+            border-radius: 9px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 4px;
+    
+        }
+        #download-pdf{
+            background-color: #1e79b9;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin-top: 9px;
+            margin-bottom: 9px;
+        }
+        .client-info{
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            
+        }
+        #client-name{
+            height: 20px;
+            font-weight: bolder;
+        }
+
+        #client-cnpj{
+            height: 20px;
+            font-weight: bolder;
+        }
+        .ftcarrinho{
+            width: 30px;
+            height: 30px;
+        }
