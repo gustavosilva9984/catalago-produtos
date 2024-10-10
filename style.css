@@ -388,16 +388,7 @@
             font-weight: bold;
         }
         #close-sellers{
-            background-color: rgb(216, 40, 40);
-            font-size: 19px;
-            font-weight: bold;
-            border: none;
-            border-radius: 9px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 4px;
-    
+            display: none;
         }
         #download-pdf{
             background-color: #1e79b9;
