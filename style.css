@@ -276,6 +276,10 @@
             #show-sellers{
                 display: none;
             }
+
+            .card .product-price{
+                   display:none;
+            }
         }
 
         .vendor-select {
