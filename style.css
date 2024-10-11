@@ -157,6 +157,11 @@
             z-index: 1000;
         }
 
+        .cart-icon img{
+            height: 50px;
+            width: 50px;
+        }
+
         .cart-icon:hover {
             background-color: #0056b3;
         }
