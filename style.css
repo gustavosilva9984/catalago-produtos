@@ -269,6 +269,7 @@
             }
             .card .product-code {
                 color: rgb(126, 12, 12);
+              font-size:9px;
             }
             .whatsapp{
                 display: none;
